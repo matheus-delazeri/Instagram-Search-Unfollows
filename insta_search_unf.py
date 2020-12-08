@@ -75,23 +75,28 @@ class InstaSearchUnf:
             try:
                 driver.execute_script('arguments[0].scrollIntoView(true);', target)
                 cont += 5
-                sleep(0.6)
+                sleep(0.5)
                 target = driver.find_element_by_xpath("/html/body/div[5]/div/div/div[2]/ul/div/li[{}]".format(cont))
             except:
-                running = False
+                sleep(0.3)
+                try:
+                    driver.execute_script('arguments[0].scrollIntoView(true);', target)
+                    cont += 5
+                    sleep(0.5)
+                    target = driver.find_element_by_xpath("/html/body/div[5]/div/div/div[2]/ul/div/li[{}]".format(cont))
+                except:
+                    running = False
        div_link = driver.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/ul/div')
        links = div_link.find_elements_by_tag_name('a')
        names = [name.text for name in links if name.text != '']
-       self._search_unf(driver, names)
+       driver.quit()
+       self._search_unf(names)
 
        with open('followers.json', 'w') as outfile:
             json.dump(names, outfile)
-      
-       driver.quit()
 
-    def _search_unf(self, driver, names):
+    def _search_unf(self, names):
         matches = False
-        followers = []
         unfollowers = []
         try:    
             with open('followers.json', 'r') as outfile:
@@ -105,19 +110,18 @@ class InstaSearchUnf:
         for old_followers in json_followers:
             for actual_followers in names:
                 if(old_followers == actual_followers):
-                    followers.append(old_followers)
                     user_new = -1
                     matches = True
                 elif(not matches):
                     user_new = old_followers
-            for old_followers in json_followers:
-                if(user_new != -1 and old_followers == user_new):
+            if(user_new != -1):
                     unfollowers.append(user_new)
+            matches = False
         if(unfollowers):
             messagebox.showwarning(title="Matches", message="Unfollowed by: {}".format(unfollowers))
         else:
             messagebox.showwarning(title="No matches", message="This account wasn't unfollowed by anyone!".format(unfollowers))
-        
+       
     def _get_browser(self, browser):
         cont = 0
         if(browser == 'Microsoft Edge'):
